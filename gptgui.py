@@ -555,7 +555,7 @@ class Application(Frame):
         ''' display hot keys message '''
         msg = '''
 <Ctrl-h> HotKeys help
-<Ctrl-g>      Submit Query
+<Ctrl-g> Submit Query
 <Ctrl-Return> Submit Query
 <Ctrl-q> Exit Program
 <Ctrl-Shift-S> Speak the Text

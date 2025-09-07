@@ -103,10 +103,10 @@ the app is running use the 'New' button. Multiple conversations are not
 preserved anywhere, but will remain in the log until it is purged.
 GptGUI operates with other software on your system:
 
-    text editor
-    audio players
-    Internet browser
-    Python/tkinter and libraries
+-    a text editor
+-    an audio player (Linux requires "mpv")
+-    an Internet browser
+-    Python/tkinter and libraries
 
 ## Hot Keys
 
