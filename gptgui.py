@@ -389,14 +389,22 @@ class Application(Frame):
             messagebox.showinfo("Purge", "Log Deleted.")
 
 
+
     def on_new(self):
         ''' Event handler for the New button.
         Optionally starts new conversation '''
+        root.withdraw()
         result = messagebox.askokcancel("Confirm New Conversation",
                                         "OK to start a new conversation?\nCANCEL to continue previous.")
+        root.deiconify()
         if result is True:
             # start new conversation
             self.conversation.clear()
+            # check for system message change
+            usertext = self.query.get("1.0", END)
+            if usertext.lower().startswith("prompt "):
+                self.MySystem = usertext[7:].strip()
+            # set the system message
             self.conversation = [
                 {"role": "system", "content": self.MySystem}
             ]
