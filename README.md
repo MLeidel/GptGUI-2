@@ -66,7 +66,10 @@ Type your prompt in the top box, and hit __"Submit Query"__ or _Ctrl-g_.
 The Gpt AI response will appear in the larger box below.
 
 - **New**
-> Begins a new conversation
+> Begins a new conversation  
+>>To change the system role message for the current session,  
+type **_prompt You are a .......... assistant_**  
+into the Prompt Area and then click "New".
 - **View**
 > Displays the log file you set up in Options  
 - **Purge**

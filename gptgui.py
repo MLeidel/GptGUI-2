@@ -1,12 +1,11 @@
 '''
 gptgui.py 2
     by Michael Leidel
-remarks:
-    Aug 2025
-    Added 'temporaty conversation capability'
-    added removed some options
-    added speech toggle
-    improved logging
+
+Disclaimer: This software is provided free of charge and "as is," without any warranties,
+express or implied. The author and contributors assume no responsibility for any damages,
+data loss, or other issues arising from its use. Use at your own risk.
+
 '''
 import os
 import sys
@@ -387,7 +386,6 @@ class Application(Frame):
         if ret is True:
             os.remove(self.MyPath)
             messagebox.showinfo("Purge", "Log Deleted.")
-
 
 
     def on_new(self):
