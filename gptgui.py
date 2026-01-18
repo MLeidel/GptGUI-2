@@ -1,5 +1,5 @@
 '''
-gptgui.py 2
+gptguiX.py 2
     by Michael Leidel
 
 Disclaimer: This software is provided free of charge and "as is," without any warranties,
@@ -17,6 +17,7 @@ import markdown
 import platform
 import json
 import openvoc
+from pathlib import Path
 from tkinter.font import Font
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -26,6 +27,7 @@ from ttkbootstrap.tooltip import ToolTip
 from time import localtime, strftime
 from openai import OpenAI
 
+apptitle = "GptGUI 2.1 "
 
 class Application(Frame):
     ''' main class docstring '''
@@ -140,11 +142,18 @@ class Application(Frame):
                    pady=(5, 0), padx=5)
 
         self.sub = Button(btn_frame,
-                            text='Submit Query (Ctrl-g)',
-                            command=self.on_submit, width=20,
+                            text='Submit Query',
+                            command=self.on_submit, width=15,
                             bootstyle=(OUTLINE))
         self.sub.grid(row=1, column=9, sticky='w',
-                   pady=(5, 0), padx=(20, 0))
+                   pady=(5, 0), padx=(10,5))
+
+        self.vw = IntVar()  # Tooggle Web Search Checkbutton
+        self.web = Checkbutton(btn_frame, variable=self.vw,
+                    text='Web', bootstyle="outline-toolbutton")
+        self.web.grid(row=1, column=10, sticky='w', pady=(5, 0), padx=(10, 5))
+
+
 
        # END BUTTON FRAME
 
@@ -221,6 +230,10 @@ class Application(Frame):
                 text="markdown to text editor",
                 bootstyle=(INFO, INVERSE),
                 wraplength=140)
+        ToolTip(self.web,
+                text="Toggle Web Search ",
+                bootstyle=(INFO, INVERSE),
+                wraplength=140)
 
 
 
@@ -255,12 +268,11 @@ class Application(Frame):
         # use the following line to refresh the txt color when needed
         self.txt.tag_add('all_text', '1.0', 'end-1c')  # exclude trailing newline
 
-
 #----------------------------------------------------------------------
 
     def set_intro(self):
         intro = f'''
-        Welcome to GptGUI 2
+        Welcome to {apptitle}
             a GUI desktop AI client for conversing with
             OpenAI's Large Language Models
 
@@ -296,16 +308,29 @@ class Application(Frame):
         )
 
         # 2) call the chat completion
-        ai_text, total, prompt, completion = self.gptCode(self.MyKey,
-                                                          self.MyModel,
-                                                          self.conversation)
-
-        if ai_text == "":
-            self.query.delete("1.0", END)
-            self.txt.delete("1.0", END)
-            self.txt.insert("1.0", self.set_intro())
-            self.txt.tag_add('all_text', '1.0', 'end-1c')
-            return
+        if self.vw.get() == 1:  #  requesting web search tool?
+            print("web search")
+            #ai_text = self.gptweb(query)
+            try:
+                client = OpenAI(api_key=os.environ.get(self.MyKey))
+                response = client.responses.create(
+                    model=self.MyModel,
+                    tools=[{"type": "web_search"}],
+                    input=self.conversation
+                )
+                ai_text = (response.output_text)
+            except Exception as e:
+                ai_text = e
+        else:
+            ai_text, total, prompt, completion = self.gptCode(self.MyKey,
+                                                              self.MyModel,
+                                                              self.conversation)
+            if ai_text == "":
+                self.query.delete("1.0", END)
+                self.txt.delete("1.0", END)
+                self.txt.insert("1.0", self.set_intro())
+                self.txt.tag_add('all_text', '1.0', 'end-1c')
+                return
 
         # 3) add the assistant reply to history
         self.conversation.append(
@@ -320,15 +345,22 @@ class Application(Frame):
         # SAVE conversation to disk
         self.save_buffer(self.conversation, self.cpath)
 
-        # append to log
+        # if self.vw.get() != 1:
+        # append to log if not a web-search
         today = strftime("%a %d %b %Y", localtime())
         tm    = strftime("%H:%M", localtime())
         with open(self.MyPath, "a", encoding="utf-8") as fout:
             fout.write("\n\n=== Chat on %s %s ===\n\n" % (today, tm))
-            fout.write(f"prompt:{prompt}, completion:{completion}, total:{total} \n\n")
-            for msg in self.conversation:
-                role = msg["role"]
-                fout.write(f"{role.upper()}:\n{msg['content']}\n\n")
+            if self.vw.get() != 1:
+                fout.write(f"prompt:{prompt}, completion:{completion}, total:{total} \n\n")
+                for msg in self.conversation:
+                    role = msg["role"]
+                    fout.write(f"{role.upper()}:\n{msg['content']}\n\n")
+            else:
+                for msg in self.conversation:
+                    role = msg["role"]
+                    fout.write(f"{msg['content']}\n\n")
+
             fout.write("="*40 + "\n\n")
 
         # clear the input query box
@@ -344,8 +376,8 @@ class Application(Frame):
         """Call the OpenAI ChatCompletion endpoint."""
         try:
             client = OpenAI(api_key=os.environ.get(key))
-            resp = client.chat.completions.create(
-            model    = model,
+            resp  = client.chat.completions.create(
+            model = model,
             messages = messages)
             content = resp.choices[0].message.content.strip()
             total_tokens, prompt_tokens, completion_tokens = self.extract_token_counts(resp)
@@ -390,17 +422,19 @@ class Application(Frame):
 
     def on_new(self):
         ''' Event handler for the New button.
-        Optionally starts new conversation '''
+        Optionally starts new conversation
+        A new system prompt may be taken from the prompt
+        area preceeded by the word `prompt` '''
         root.withdraw()
-        result = messagebox.askokcancel("Confirm New Conversation",
-                                        "OK to start a new conversation?\nCANCEL to continue previous.")
+        result = messagebox.askokcancel("Chat",
+                                        "Continue previous conversation?")
         root.deiconify()
-        if result is True:
+        if result is False:
             # start new conversation
             self.conversation.clear()
             # check for system message change
             usertext = self.query.get("1.0", END)
-            if usertext.lower().startswith("prompt "):
+            if usertext.lower().startswith("prompt"):
                 self.MySystem = usertext[7:].strip()
             # set the system message
             self.conversation = [
@@ -436,7 +470,7 @@ class Application(Frame):
             messagebox.showwarning(self.MyPath, "Empty - No File to view")
             return
         self.txt.delete("1.0", END)
-        with open(self.MyPath, "r") as fin:
+        with open(self.MyPath, "r", encoding="utf-8") as fin:
             self.txt.insert("1.0", fin.read())
         self.txt.see(END)
         self.query.delete("1.0", END)
@@ -516,11 +550,11 @@ class Application(Frame):
         H = markdown.markdown(text,
                               extensions=['tables','fenced_code'])
         # write to file
-        filename = os.getcwd() + '/' + self.MyFile + '.html'
-        with open(filename, 'w') as f:
+        html_path = Path(__file__).resolve().parent / f"{self.MyFile}.html"  # script's directory + file
+        with open(html_path, 'w') as f:
             f.write(H)
-        # open file in browser
-        webbrowser.open_new_tab('file:///' + filename)
+        webbrowser.open_new_tab(html_path.as_uri())  # opens in default browser
+
 
 
     def toggle_speech(self, e=None):
@@ -717,7 +751,7 @@ MyTheme = config['Main']['theme']
 MyModel = config['Main']['engine']
 
 # define main window
-MyTitle = "GptGUI 2 " + MyModel
+MyTitle = apptitle + MyModel
 root = Window(MyTitle, MyTheme, iconphoto="icon.png")
 
 # change working directory to path for this file
