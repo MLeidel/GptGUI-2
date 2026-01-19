@@ -2,15 +2,17 @@
 
 ### Python GUI to access Gpt Engine with OpenAI
 
--  Temporary Chat Mode
--  Supports a variety of OpenAI models
+-  Temporary local Chat Mode
+-  Supports a variety of OpenAI models and web-search
 -  Choose from many themes
 -  Convert responses to HTML or VOICE
 -  Maintains a log of reponses
 
 see https://platform.openai.com/docs for model information
 
-_make sure to pip install the latest **openai** module_  
+_requires the latest **openai** module_  
+
+>`pip install openai`
 
 ----
 
@@ -72,8 +74,6 @@ type **_prompt You are a .......... assistant_**
 into the Prompt Area and then click "New".
 - **View**
 > Displays the log file you set up in Options  
-- **Purge**
-> Clears the contens of the log file  
 - **Text**
 > Opens the current response or selection in your text editor   
 Set up the name of your text editor in the options.
@@ -84,6 +84,10 @@ Converting Markdown to HTML
 > launches the Options editor program
 - **Submit Query**
 > Submits prompt to OpenAI engine
+- **Web**
+> Toggle the Gpt "web-search" tool
+- **Select Temporary Model**
+> Select from models listed in gptgui.ini file
 - **Close**
 > Exit the program. _Ctrl-q_ exits the program quickly.
 
@@ -91,9 +95,9 @@ Converting Markdown to HTML
 
 ## Context menu
 
-There is a context (Right-Click) menu for convenience.
+There is a context menu (depress right mouse button) for convenience.
 The height of the query text area (top frame) can be lengthened
-or shortened with this menu.
+or shortened from this menu.
 
 ---
 
@@ -120,7 +124,7 @@ GptGUI operates with other software on your system:
 |__Ctrl-Shift-S__| Speak the Currrent Text|
 |__Ctrl-Shift_T__| Toggle Speech|
 |__Ctrl-G__| Submit Query (Button)|
-|__Ctrl-Enter__ | same as Ctrl-g|
+|__Ctrl-Enter__ | Submit Query (Button)|
 |__Ctrl-F__| Find text |
 |__Ctrl-N__| Find next text |
 

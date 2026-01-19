@@ -55,6 +55,10 @@ class Application(Frame):
         self.MyColor    = config['Main']['color']
         self.MySystem   = config['Main']['system']
         self.TOPFRAME   = int(config['Main']['top_frame'])
+        mods = config['Models']['list']
+        self.MyModels = mods.split(',')
+        self.MyModels = [s.strip() for s in self.MyModels]
+
         # if len(self.MyKey) < 16:
         #     self.MyKey = os.environ.get(self.MyKey)  # Using ENV var instead of actual key string.
 
@@ -117,12 +121,6 @@ class Application(Frame):
         self.view.grid(row=1, column=4, sticky='w',
                    pady=(5, 0))
 
-        self.purge = Button(btn_frame, text='Purge',
-                            command=self.on_purge,
-                            bootstyle=(OUTLINE))
-        self.purge.grid(row=1, column=5, sticky='w',
-                   pady=(5, 0), padx=5)
-
         self.open = Button(btn_frame, text='Text',
                             command=self.on_md_open,
                             bootstyle=(OUTLINE))
@@ -153,7 +151,11 @@ class Application(Frame):
                     text='Web', bootstyle="outline-toolbutton")
         self.web.grid(row=1, column=10, sticky='w', pady=(5, 0), padx=(10, 5))
 
-
+        self.vcmbo_model = StringVar()
+        self.cmbo_model = Combobox(btn_frame, textvariable=self.vcmbo_model, width=15, state="readonly")
+        self.cmbo_model['values'] = (self.MyModels)
+        self.cmbo_model.grid(row=1, column=11, sticky='w', pady=(5, 0), padx=(0, 5))
+        self.cmbo_model.bind('<<ComboboxSelected>>', self.onComboSelect)
 
        # END BUTTON FRAME
 
@@ -212,10 +214,6 @@ class Application(Frame):
                 wraplength=140)
         ToolTip(self.view,
                 text="View current log",
-                bootstyle=(INFO, INVERSE),
-                wraplength=140)
-        ToolTip(self.purge,
-                text="Delete current log",
                 bootstyle=(INFO, INVERSE),
                 wraplength=140)
         ToolTip(self.sub,
@@ -350,7 +348,7 @@ class Application(Frame):
         today = strftime("%a %d %b %Y", localtime())
         tm    = strftime("%H:%M", localtime())
         with open(self.MyPath, "a", encoding="utf-8") as fout:
-            fout.write("\n\n=== Chat on %s %s ===\n\n" % (today, tm))
+            fout.write("\n\n=== (%s) Chat on %s %s ===\n\n" % (self.MyModel, today, tm,))
             if self.vw.get() != 1:
                 fout.write(f"prompt:{prompt}, completion:{completion}, total:{total} \n\n")
                 for msg in self.conversation:
@@ -363,8 +361,9 @@ class Application(Frame):
 
             fout.write("="*40 + "\n\n")
 
-        # clear the input query box
-        self.query.delete("1.0", END)
+        # select the input query box
+        # self.query.delete("1.0", END)
+        self.query.tag_add("sel", "1.0", "end-1c")
         self.query.focus_set()
 
         # Speak response, if speach is on ...
@@ -409,15 +408,11 @@ class Application(Frame):
         return total_tokens, prompt_tokens, completion_tokens
 
 
-    def on_purge(self):
-        ''' User is purging the query-save file '''
-        if not os.path.isfile(self.MyPath):
-            messagebox.showwarning(self.MyPath, "Empty - No File to purge")
-            return
-        ret = messagebox.askokcancel("Purge", "Delete current log?")
-        if ret is True:
-            os.remove(self.MyPath)
-            messagebox.showinfo("Purge", "Log Deleted.")
+    def onComboSelect(self, e=None):
+        ''' Selecting temporary AI model '''
+        self.MyModel = self.vcmbo_model.get()
+        MyTitle = apptitle + self.MyModel
+        root.title(MyTitle)
 
 
     def on_new(self):
@@ -508,7 +503,7 @@ class Application(Frame):
         self.txt.configure(font=efont)
         style = Style()
         style = Style(theme=self.MyTheme)
-        MyTitle = "GptGUI (OpenAI) " + self.MyModel
+        MyTitle = apptitle + self.MyModel
         root.title(MyTitle)
         self.txt.delete("1.0", END)
         self.txt.insert("1.0", self.set_intro())
