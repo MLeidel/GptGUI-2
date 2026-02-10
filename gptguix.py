@@ -207,8 +207,7 @@ class Application(Frame):
         root.bind("<Control-Shift-T>", self.toggle_speech)  # on/off
         root.bind("<Control-f>", self.find_text)
         root.bind("<Control-n>", self.find_next)
-        root.bind("<Control-j>", self.open_selected_url)  # open selected URL in browser
-        root.bind("<Control-m>", self.show_prompts)  # show the pronpt.md document
+        root.bind("<Control-j>", self.open_selected_url)
 
         # ToolTips
         ToolTip(self.new,
@@ -296,19 +295,15 @@ class Application(Frame):
         return intro
 
 
-    def show_prompts(self, event=None):
-        self.txt.delete("1.0", END)
-        self.txt.insert("1.0", open("prompt.md").read())
-
-
     def on_submit(self, event=None):
         ''' Event handler for Submit button (Ctrl-G). '''
         query = self.query.get("1.0", END).strip()
 
-        # show prompt.md document
+        # process prompt commands
 
         if query.startswith("prompt"):
-            self.show_prompts()
+            self.query.delete("1.0", END)
+            self.query.insert("1.0", open(query + ".txt").read())
             return
 
         # begin submiting request
@@ -616,7 +611,6 @@ class Application(Frame):
 <Ctrl-f> Find Text
 <Ctrl-n> Find Next Text
 <Ctrl-j> Open Selected URL
-<Ctrl-m> Show prompt.md
         '''
         messagebox.showinfo("Hot Keys Help", msg)
 
