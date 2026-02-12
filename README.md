@@ -128,7 +128,7 @@ GptGUI operates with other software on your system:
 |__Ctrl-F__| Find text |
 |__Ctrl-N__| Find next text |
 |__Ctrl-J__| Open Selected URL |
-|__Ctrl-M__| Show prompt.md |
+|__Ctrl-M__| Show prompt.md (prompt examples)|
 
 Submiting the word "prompt" also shows the prompt.md document.
 

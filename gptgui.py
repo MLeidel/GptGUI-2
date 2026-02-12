@@ -168,7 +168,7 @@ class Application(Frame):
                  pady=(5,0), padx=5)
 
         # Popup menus - for self.query Text widgets
-        self.popup_query = Menu(tearoff=0, title="title")
+        self.popup_query = Menu(root, tearoff=0)
         self.popup_query.add_command(label="Copy",
                                command=lambda: self.popquery(1))
         self.popup_query.add_command(label="Paste",
@@ -184,10 +184,9 @@ class Application(Frame):
         self.popup_query.add_separator()
         self.popup_query.add_command(label="Browser",
                                      command=lambda: self.popquery(6))
-        self.query.bind("<Button-3>", self.do_pop_query)
 
         # Popup menus - for self.txt Text widgets
-        self.popup_txt = Menu(tearoff=0, title="title")
+        self.popup_txt = Menu(tearoff=0)
         self.popup_txt.add_command(label="Copy",
                                command=lambda: self.poptxt(1))
         self.popup_txt.add_command(label="Paste",
@@ -195,7 +194,6 @@ class Application(Frame):
         self.popup_txt.add_separator()
         self.popup_txt.add_command(label="Copy All",
                                      command=lambda: self.poptxt(3))
-        self.txt.bind("<Button-3>", self.do_pop_txt)
 
 
         # Bindings
@@ -209,6 +207,8 @@ class Application(Frame):
         root.bind("<Control-n>", self.find_next)
         root.bind("<Control-j>", self.open_selected_url)  # open selected URL in browser
         root.bind("<Control-m>", self.show_prompts)  # show the pronpt.md document
+        self.query.bind("<Button-3>", self.do_pop_query)
+        self.txt.bind("<Button-3>", self.do_pop_txt)
 
         # ToolTips
         ToolTip(self.new,
@@ -616,29 +616,61 @@ class Application(Frame):
 <Ctrl-f> Find Text
 <Ctrl-n> Find Next Text
 <Ctrl-j> Open Selected URL
-<Ctrl-m> Show prompt.md
+<Ctrl-m> Show prompt help
         '''
         messagebox.showinfo("Hot Keys Help", msg)
 
 
     def do_pop_query(self, event):
         ''' handles right-click for context menu '''
-        m = self.popup_query
-        try:
-            m.tk_popup(event.x_root, event.y_root, 0)
-        finally:
-            m.grab_release()
+        popup = tk.Toplevel(root)
+        popup.wm_overrideredirect(True)  # no window decorations
+        popup.attributes("-topmost", True)
+        popup.geometry("+%d+%d" % (event.x_root, event.y_root))
+
+        frame = tk.Frame(popup, bd=0)
+        frame.pack()
+
+        items = [
+            ("Copy", lambda: (popup.destroy(), self.popquery(1))),
+            ("Paste", lambda: (popup.destroy(), self.popquery(2))),
+            ("Copy All", lambda: (popup.destroy(), self.popquery(3))),
+            ("Larger", lambda: (popup.destroy(), self.popquery(4))),
+            ("Smaller", lambda: (popup.destroy(), self.popquery(5))),
+            ("Close", lambda: (popup.destroy())),
+        ]
+
+        for text, cmd in items:
+            b = tk.Button(frame, text=text, anchor="w", command=lambda c=cmd: (popup.destroy(), c()))
+            b.pack(fill="x", padx=8, pady=4)  # padding around each item
+
 
     def do_pop_txt(self, event):
-        ''' handles right-click for context menu '''
-        m = self.popup_txt
-        try:
-            m.tk_popup(event.x_root, event.y_root, 0)
-        finally:
-            m.grab_release()
+        ''' handles right-click for txt menu '''
+        popup = tk.Toplevel(root)
+        popup.wm_overrideredirect(True)  # no window decorations
+        popup.attributes("-topmost", True)
+        popup.geometry("+%d+%d" % (event.x_root, event.y_root))
+
+        frame = tk.Frame(popup, bd=0)
+        frame.pack()
+
+        items = [
+            ("Copy", lambda: (popup.destroy(), self.poptxt(1))),
+            ("Paste", lambda: (popup.destroy(), self.poptxt(2))),
+            ("Copy All", lambda: (popup.destroy(), self.poptxt(3))),
+            ("Search", lambda: (popup.destroy(), self.poptxt(4))),
+            ("Find Text", lambda: (popup.destroy(), self.poptxt(5))),
+            ("KB Help", lambda: (popup.destroy(), self.poptxt(6))),
+            ("Close", lambda: (popup.destroy())),
+        ]
+
+        for text, cmd in items:
+            b = tk.Button(frame, text=text, anchor="w", command=lambda c=cmd: (popup.destroy(), c()))
+            b.pack(fill="x", padx=8, pady=4)  # padding around each item
 
     def popquery(self, n):
-        ''' Routes query Text context menu actions '''
+        ''' Routes query context menu actions '''
         if n == 1:  # Copy
             root.clipboard_clear()  # clear clipboard contents
             if self.query.tag_ranges("sel"):
@@ -665,19 +697,17 @@ class Application(Frame):
             if self.TOPFRAME > 3:
                 self.TOPFRAME -= 2
                 self.query.config(height=self.TOPFRAME)
-        else:   # 6
-            search = self.query.selection_get()
-            webbrowser.open("https://duckduckgo.com/?q=" + search)
+
 
     def poptxt(self, n):
-        ''' Routes txt Text context menu actions '''
+        ''' Routes txt context menu actions '''
         if n == 1:  # Copy
             root.clipboard_clear()  # clear clipboard contents
             root.clipboard_append(self.txt.selection_get())  # append new value to clipbaord
         elif n == 2:  # Paste
             inx = self.txt.index(INSERT)
             self.txt.insert(inx, root.clipboard_get())
-        else:  # Select All
+        elif n == 3:  # Select All
             self.txt.focus()
             self.txt.tag_add(SEL, '1.0', END)
             self.txt.mark_set(INSERT, '1.0')
@@ -686,6 +716,15 @@ class Application(Frame):
             if self.txt.tag_ranges("sel"):  # append new value to clipbaord
                 root.clipboard_append(self.txt.selection_get())
                 self.txt.tag_remove(SEL, "1.0", END)
+        elif n == 4:   # search for selected text using browser
+            search = self.txt.selection_get()
+            if len(search) > 2:
+                webbrowser.open("https://www.google.com/search?q=" + search)
+        elif n == 5:  # find text in the response window
+            self.find_text()
+        elif n == 6:  # keyboard help
+            self.on_kb_help()
+
 
     def find_text(self, event=None):
         ''' Ask the user for the text to search
