@@ -296,6 +296,12 @@ class Application(Frame):
         return intro
 
 
+    def display_intro(self):
+        self.txt.delete("1.0", END)
+        self.txt.insert("1.0", self.set_intro())
+        self.txt.tag_add('all_text', '1.0', 'end-1c')
+
+
     def show_prompts(self, event=None):
         self.txt.delete("1.0", END)
         self.txt.insert("1.0", open("prompt.md").read())
@@ -343,9 +349,7 @@ class Application(Frame):
                                                               self.conversation)
             if ai_text == "":
                 self.query.delete("1.0", END)
-                self.txt.delete("1.0", END)
-                self.txt.insert("1.0", self.set_intro())
-                self.txt.tag_add('all_text', '1.0', 'end-1c')
+                self.display_intro()
                 return
 
         # 3) add the assistant reply to history
@@ -361,18 +365,17 @@ class Application(Frame):
         # SAVE conversation to disk
         self.save_buffer(self.conversation, self.cpath)
 
-        # if self.vw.get() != 1:
-        # append to log if not a web-search
+        # append to log
         today = strftime("%a %d %b %Y", localtime())
         tm    = strftime("%H:%M", localtime())
         with open(self.MyPath, "a", encoding="utf-8") as fout:
             fout.write("\n\n=== (%s) Chat on %s %s ===\n\n" % (self.MyModel, today, tm,))
-            if self.vw.get() != 1:
+            if self.vw.get() != 1:  # if not a web-search
                 fout.write(f"prompt:{prompt}, completion:{completion}, total:{total} \n\n")
                 for msg in self.conversation:
                     role = msg["role"]
                     fout.write(f"{role.upper()}:\n{msg['content']}\n\n")
-            else:
+            else:  # web-search
                 for msg in self.conversation:
                     role = msg["role"]
                     fout.write(f"{msg['content']}\n\n")
@@ -427,10 +430,12 @@ class Application(Frame):
 
 
     def onComboSelect(self, e=None):
-        ''' Selecting temporary AI model '''
+        ''' Selecting different AI model '''
         self.MyModel = self.vcmbo_model.get()
-        MyTitle = apptitle + self.MyModel
+        MyTitle = apptitle + self.MyModel + " *"
+        # update window caption and information
         root.title(MyTitle)
+        self.display_intro()
 
 
     def on_new(self):
@@ -456,9 +461,7 @@ class Application(Frame):
             if os.path.isfile(self.cpath):
                 os.remove(self.cpath)
             self.query.delete("1.0", END)
-            self.txt.delete("1.0", END)
-            self.txt.insert("1.0", self.set_intro())
-            self.txt.tag_add('all_text', '1.0', 'end-1c')
+            self.display_intro()
         self.query.focus_set()
 
 
