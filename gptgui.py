@@ -659,9 +659,10 @@ class Application(Frame):
             ("Copy", lambda: (popup.destroy(), self.poptxt(1))),
             ("Paste", lambda: (popup.destroy(), self.poptxt(2))),
             ("Copy All", lambda: (popup.destroy(), self.poptxt(3))),
-            ("Search", lambda: (popup.destroy(), self.poptxt(4))),
+            ("Google Text", lambda: (popup.destroy(), self.poptxt(4))),
             ("Find Text", lambda: (popup.destroy(), self.poptxt(5))),
             ("KB Help", lambda: (popup.destroy(), self.poptxt(6))),
+            ("Open URL", lambda: (popup.destroy(), self.poptxt(7))),
             ("Close", lambda: (popup.destroy())),
         ]
 
@@ -724,6 +725,8 @@ class Application(Frame):
             self.find_text()
         elif n == 6:  # keyboard help
             self.on_kb_help()
+        elif n == 7:  # open browser with selected URL
+            self.open_selected_url()
 
 
     def find_text(self, event=None):
