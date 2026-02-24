@@ -69,43 +69,53 @@ class Application(Frame):
 
     def create_widgets(self):
         ''' creates GUI for app '''
+
         # expand widget to fill the grid
         self.columnconfigure(1, weight=1, pad=5)
         self.columnconfigure(2, weight=1, pad=5)
+        self.rowconfigure(1, weight=1, pad=5)
         self.rowconfigure(2, weight=1, pad=5)
 
-        self.query = Text(self)
-        self.query.grid(row=1, column=1, columnspan=2, sticky='nsew')
+        # Create a vertical PanedWindow to hold both text widgets
+        self.paned = PanedWindow(self, orient=VERTICAL)
+        self.paned.grid(row=1, rowspan=2, column=1, columnspan=2, sticky='nsew')
+
+        # --- Query frame (top pane) ---
+        self.query_frame = Frame(self.paned)
+        self.query = Text(self.query_frame)
+        self.query.pack(side=LEFT, fill=BOTH, expand=True)
         efont = Font(family=self.MyFntQryF, size=self.MyFntQryZ)
         self.query.configure(font=efont)
-        self.query.config(wrap="word", # wrap=NONE
-                          undo=True, # Tk 8.4
+        self.query.config(wrap="word",
+                          undo=True,
                           width=50,
                           height=self.TOPFRAME,
-                          padx=5, # inner margin
-                          #insertbackground='#000',   # cursor color
+                          padx=5,
                           tabs=(efont.measure(' ' * 4),))
+        self.scrolly_query = Scrollbar(self.query_frame, orient=VERTICAL,
+                                        command=self.query.yview)
+        self.scrolly_query.pack(side=RIGHT, fill=Y)
+        self.query['yscrollcommand'] = self.scrolly_query.set
+        self.paned.add(self.query_frame)
 
-        self.scrolly = Scrollbar(self, orient=VERTICAL,
-                                 command=self.query.yview)
-        self.scrolly.grid(row=1, column=3, sticky='ns')  # use nse
-        self.query['yscrollcommand'] = self.scrolly.set
-
-        self.txt = Text(self)
-        self.txt.grid(row=2, column=1, columnspan=2, sticky='nsew')
+        # --- Response frame (bottom pane) ---
+        self.txt_frame = Frame(self.paned)
+        self.txt = Text(self.txt_frame)
+        self.txt.pack(side=LEFT, fill=BOTH, expand=True)
         efont = Font(family=self.MyFntGptF, size=self.MyFntGptZ)
         self.txt.configure(font=efont)
-        self.txt.config(wrap="word", # wrap=NONE
-                        undo=True, # Tk 8.4
+        self.txt.config(wrap="word",
+                        undo=True,
                         width=50,
                         height=12,
-                        padx=5, # inner margin
-                        #insertbackground='#000',   # cursor color
+                        padx=5,
                         tabs=(efont.measure(' ' * 4),))
+        self.scrolly_txt = Scrollbar(self.txt_frame, orient=VERTICAL,
+                                      command=self.txt.yview)
+        self.scrolly_txt.pack(side=RIGHT, fill=Y)
+        self.txt['yscrollcommand'] = self.scrolly_txt.set
+        self.paned.add(self.txt_frame)
 
-        self.scrolly = Scrollbar(self, orient=VERTICAL, command=self.txt.yview)
-        self.scrolly.grid(row=2, column=3, sticky='ns')  # use nse
-        self.txt['yscrollcommand'] = self.scrolly.set
 
         # BUTTON FRAME
         btn_frame = Frame(self)
